@@ -18,14 +18,16 @@ function moneyShort(value) {
 }
 
 // Donut: shares of spending by category. slices = [{label, value, color}]
+// Kept compact (210px) so the dashboard's trend chart below it still shows
+// inside a 1280x800 viewport.
 export function drawDonut(canvas, slices, total) {
   const width = canvas.clientWidth || 320;
-  const height = 260;
+  const height = 210;
   const ctx = setupCanvas(canvas, width, height);
   const cx = width / 2;
   const cy = height / 2;
-  const outer = 104;
-  const inner = 66;
+  const outer = 86;
+  const inner = 54;
   let start = -Math.PI / 2;
   for (const slice of slices) {
     const angle = (slice.value / total) * Math.PI * 2;
@@ -47,9 +49,10 @@ export function drawDonut(canvas, slices, total) {
 }
 
 // Bars: one bar per month, income vs spending. months = [{label, income, spent}]
+// Kept compact (200px) so the card fits the first viewport on the dashboard.
 export function drawBars(canvas, months) {
   const width = canvas.clientWidth || 640;
-  const height = 240;
+  const height = 200;
   const ctx = setupCanvas(canvas, width, height);
   const padLeft = 44;
   const padBottom = 26;
