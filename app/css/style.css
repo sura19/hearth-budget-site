@@ -64,31 +64,35 @@ input, select { font-family: inherit; font-size: 15px; }
 #month-label { font-size: 14px; font-weight: 700; min-width: 128px; text-align: center; }
 
 /* Layout */
-main.wrap { padding-top: 26px; padding-bottom: 40px; }
-.page-head { margin: 4px 0 18px; }
-.page-head h1 { font-size: 30px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 6px; }
+main.wrap { padding-top: 16px; padding-bottom: 28px; }
+.page-head { margin: 2px 0 12px; }
+.page-head h1 { font-size: 27px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 6px; }
 .page-head p { margin: 0; color: var(--ink-soft); max-width: 68ch; }
-.grid { display: grid; gap: 16px; }
+.grid { display: grid; gap: 14px; }
+.grid-start { align-items: start; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-main { grid-template-columns: 1.9fr 1fr; align-items: start; }
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  box-shadow: var(--shadow); padding: 20px;
+  box-shadow: var(--shadow); padding: 16px 18px;
 }
 .card h2 { font-size: 17px; margin: 0 0 4px; letter-spacing: -0.01em; }
 .card h3 { font-size: 15px; margin: 0 0 8px; }
 .card .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 12px; }
 .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .card-head a { font-size: 13.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-.stack { display: grid; gap: 16px; }
+.stack { display: grid; gap: 14px; }
 
 /* Stat cards */
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
-.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 13px 16px; }
 .stat .label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
-.stat .value { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
+.stat .value { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
 .stat .note { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.stat .delta { font-size: 12.5px; font-weight: 700; margin-top: 1px; }
+.stat .delta.up { color: var(--green); }
+.stat .delta.down { color: var(--red); }
 .stat.good .value { color: var(--green); }
 .stat.warn .value { color: var(--amber); }
 .stat.bad .value { color: var(--red); }
@@ -111,7 +115,7 @@ main.wrap { padding-top: 26px; padding-bottom: 40px; }
 .bar > span { display: block; height: 100%; background: var(--green); border-radius: 999px; }
 .bar.over > span { background: var(--red); }
 .bar.near > span { background: var(--amber); }
-.budget-row { padding: 12px 0; border-top: 1px solid var(--line); }
+.budget-row { padding: 9px 0; border-top: 1px solid var(--line); }
 .budget-row:first-of-type { border-top: 0; padding-top: 2px; }
 .budget-row .row-top { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 14.5px; }
 .budget-row .row-top .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
@@ -175,6 +179,8 @@ form label input:focus, form label select:focus { outline: 2px solid var(--green
 .insight p { margin: 0; font-size: 14.5px; }
 .insight p b { font-weight: 800; }
 .legend { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.legend.two-col { grid-template-columns: 1fr 1fr; column-gap: 14px; }
+.legend.two-col .amt { font-size: 12.5px; }
 .legend li { display: flex; align-items: center; gap: 8px; }
 .legend .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
 .legend .amt { margin-left: auto; font-weight: 700; }
@@ -187,7 +193,7 @@ form label input:focus, form label select:focus { outline: 2px solid var(--green
 .chart-center .big { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
 .chart-center .small { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 .empty { color: var(--muted); font-size: 14.5px; padding: 18px 0; text-align: center; }
-.callout { background: var(--amber-soft); border: 1px solid #f3d9ae; border-radius: 10px; padding: 12px 14px; font-size: 14px; margin: 0 0 14px; }
+.callout { background: var(--amber-soft); border: 1px solid #f3d9ae; border-radius: 10px; padding: 10px 14px; font-size: 14px; margin: 0 0 12px; }
 .callout.good { background: var(--green-soft); border-color: #bcd8c2; }
 
 /* Footer */
