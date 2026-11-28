@@ -94,17 +94,16 @@ function statCard(label, value, note, tone, delta) {
   return `<div class="stat ${tone || ""}">
     <div class="label">${label}</div>
     <div class="value money">${value}</div>
-    <div class="note">${note}</div>
-    ${delta ? `<div class="delta ${delta.dir}">${delta.text}</div>` : ""}
+    <div class="note">${note}${delta ? ` · <span class="delta ${delta.dir}">${delta.text}</span>` : ""}</div>
   </div>`;
 }
 
-function deltaVs(current, previous, invert) {
+function deltaVs(current, previous, invert, label) {
   if (!previous) return null;
   const pct = Math.round(((current - previous) / previous) * 100);
-  if (pct === 0) return { dir: "", text: "Same as last month" };
+  if (pct === 0) return { dir: "", text: "Same as " + label };
   const good = invert ? pct < 0 : pct > 0;
-  return { dir: good ? "up" : "down", text: `${pct > 0 ? "▲" : "▼"} ${Math.abs(pct)}% vs last month` };
+  return { dir: good ? "up" : "down", text: `${pct > 0 ? "▲" : "▼"} ${Math.abs(pct)}% vs ${label}` };
 }
 
 function renderDashboard() {
@@ -122,12 +121,13 @@ function renderDashboard() {
     .filter((b) => !(state.billsPaid[currentMonth] || []).includes(b.id))
     .sort((a, b) => a.day - b.day)
     .slice(0, 4);
-  const recent = monthTransactions(currentMonth).slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  const upcomingTotal = upcoming.reduce((sum, b) => sum + b.amount, 0);
+  const recent = monthTransactions(currentMonth).slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
   const savingsRate = totals.income > 0 ? Math.round(((totals.income - totals.spent) / totals.income) * 100) : 0;
 
-  const alert = over.length
-    ? `<p class="callout"><strong>Heads up:</strong> ${over.map((c) => esc(c.name)).join(", ")} ${over.length === 1 ? "is" : "are"} over budget this month. <a href="#/budgets">Review budgets</a></p>`
-    : `<p class="callout good"><strong>On track:</strong> every category is inside its budget for ${esc(monthName(currentMonth))}. Nice work.</p>`;
+  const statusPill = over.length
+    ? `<span class="pill amber">⚠ ${over.length} over budget</span>`
+    : `<span class="pill">✓ On track</span>`;
 
   const prevMonth = MONTHS[Math.max(0, MONTHS.indexOf(currentMonth) - 1)];
   const prevTotals = monthTotals(prevMonth);
@@ -143,47 +143,41 @@ function renderDashboard() {
 
   document.getElementById("view").innerHTML = `
     <div class="page-head">
-      <h1>${esc(monthName(currentMonth))} at a glance</h1>
-      <p>Here is where the month stands: what came in, what went out, and what is left for the rest of it.</p>
+      <h1>${esc(monthName(currentMonth))} at a glance ${statusPill}</h1>
+      <p>Here is where the month stands — every figure is live data, and every control on this site works.</p>
     </div>
-    ${alert}
     <div class="stats">
-      ${statCard("Income", fmtMoney(totals.income), "Salary + freelance", "good", hasPrev ? deltaVs(totals.income, prevTotals.income, false) : null)}
-      ${statCard("Spent", fmtMoney(totals.spent), "Across " + Object.keys(spent).length + " categories", totals.spent > totals.income ? "bad" : "", hasPrev ? deltaVs(totals.spent, prevTotals.spent, true) : null)}
+      ${statCard("Income", fmtMoney(totals.income), "Salary + freelance", "good", hasPrev ? deltaVs(totals.income, prevTotals.income, false, monthShort(prevMonth)) : null)}
+      ${statCard("Spent", fmtMoney(totals.spent), "Across " + Object.keys(spent).length + " categories", totals.spent > totals.income ? "bad" : "", hasPrev ? deltaVs(totals.spent, prevTotals.spent, true, monthShort(prevMonth)) : null)}
       ${statCard("Left to spend", fmtMoney(totals.income - totals.spent), savingsRate + "% of income kept", totals.income - totals.spent < 0 ? "bad" : "good")}
       ${statCard("Budget used", Math.round((budgetSpent / budgetTotal) * 100) + "%", fmtMoney(budgetSpent) + " of " + fmtMoney(budgetTotal) + " planned", over.length ? "warn" : "")}
     </div>
-    <div class="grid grid-main">
-      <div class="stack">
-        <div class="grid grid-2 grid-start">
-          <section class="card">
-            <div class="card-head"><h2>Where the money went</h2><a href="#/transactions">All transactions &rarr;</a></div>
-            <p class="sub">Spending by category, ${esc(monthName(currentMonth))}.</p>
-            <div class="chart-wrap">
-              <canvas id="donut" aria-label="Donut chart of spending by category" role="img"></canvas>
-              <div class="chart-center"><span class="big">${fmtMoney(totalSpent)}</span><span class="small">spent</span></div>
-            </div>
-            <ul class="legend two-col">
-              ${topSlices.map((s) => `<li><span class="dot" style="background:${s.color}"></span>${esc(s.label)}<span class="amt money">${fmtMoney(s.value)}</span></li>`).join("")}
-            </ul>
-          </section>
-          <section class="card">
-            <div class="card-head"><h2>Income vs spending</h2><a href="#/insights">Insights &rarr;</a></div>
-            <p class="sub">Six months at a glance — the household spends less than it earns every month.</p>
-            <div class="chart-wrap"><canvas id="bars" aria-label="Bar chart of income versus spending over six months" role="img"></canvas></div>
-            <p class="sub" style="margin:10px 0 0">Six months: ${fmtMoney(sixIn)} in, ${fmtMoney(sixOut)} out — ${fmtMoney(sixIn - sixOut)} kept. Best month: ${esc(bestMonth.label)}, ${fmtMoney(bestMonth.income - bestMonth.spent)} kept.</p>
-          </section>
-        </div>
-      </div>
-      <div class="stack">
+    <div class="stack">
+      <div class="grid grid-3">
         <section class="card">
-          <div class="card-head"><h2>Bills still to pay</h2><a href="#/bills">All bills &rarr;</a></div>
-          <p class="sub">${upcoming.length ? "Due before the month ends." : "Everything is paid for this month."}</p>
-          ${upcoming.map((b) => `<div class="kv"><span class="k">${esc(b.name)} · due ${b.day} ${esc(monthName(currentMonth).split(" ")[0])}</span><span class="v money">${fmtMoney(b.amount)}</span></div>`).join("") || `<p class="empty">No bills left — enjoy the rest of the month.</p>`}
+          <div class="card-head"><h2>Where the money went</h2><a href="#/transactions">All transactions &rarr;</a></div>
+          <div class="chart-wrap">
+            <canvas id="donut" aria-label="Donut chart of spending by category" role="img"></canvas>
+            <div class="chart-center"><span class="big">$${(totalSpent / 1000).toFixed(2)}k</span><span class="small">spent</span></div>
+          </div>
+          <ul class="legend two-col">
+            ${topSlices.map((s) => `<li><span class="dot" style="background:${s.color}"></span>${esc(s.label)}<span class="amt money">${fmtMoney(s.value)}</span></li>`).join("")}
+          </ul>
         </section>
         <section class="card">
+          <div class="card-head"><h2>Income vs spending</h2><a href="#/insights">Insights &rarr;</a></div>
+          <div class="chart-wrap"><canvas id="bars" aria-label="Bar chart of income versus spending over six months" role="img"></canvas></div>
+          <p class="sub" style="margin:10px 0 0">Six months: ${fmtMoney(sixIn)} in, ${fmtMoney(sixOut)} out — ${fmtMoney(sixIn - sixOut)} kept. Best month: ${esc(bestMonth.label)}, ${fmtMoney(bestMonth.income - bestMonth.spent)} kept.</p>
+        </section>
+        <section class="card">
+          <div class="card-head"><h2>Bills still to pay</h2><a href="#/bills">All bills &rarr;</a></div>
+          ${upcoming.map((b) => `<div class="kv"><span class="k">${esc(b.name)} · due ${b.day} ${esc(monthShort(currentMonth))}</span><span class="v money">${fmtMoney(b.amount)}</span></div>`).join("") || `<p class="empty">No bills left — enjoy the rest of the month.</p>`}
+          <div class="kv"><span class="k">Still to pay this month</span><span class="v money">${fmtMoney(upcomingTotal)}</span></div>
+        </section>
+      </div>
+      <div class="grid grid-2">
+        <section class="card">
           <div class="card-head"><h2>Budgets to watch</h2><a href="#/budgets">All budgets &rarr;</a></div>
-          <p class="sub">Categories closest to — or over — their monthly limit.</p>
           ${CATEGORIES.map((c) => ({ c, used: (spent[c.id] || 0) / (state.budgets[c.id] || 1) }))
             .sort((a, b) => b.used - a.used).slice(0, 3)
             .map(({ c, used }) => `<div class="budget-row">
@@ -193,7 +187,7 @@ function renderDashboard() {
         </section>
         <section class="card">
           <div class="card-head"><h2>Recent spending</h2><a href="#/transactions">See all &rarr;</a></div>
-          ${recent.map((tx) => `<div class="kv"><span class="k">${esc(tx.desc)}<br><span class="tx-date">${esc(tx.date)}</span></span><span class="v money ${tx.amount < 0 ? "neg" : "pos"}">${fmtMoney(tx.amount, true)}</span></div>`).join("")}
+          ${recent.map((tx) => `<div class="kv"><span class="k">${esc(tx.desc)} <span class="tx-date">· ${esc(tx.date)}</span></span><span class="v money ${tx.amount < 0 ? "neg" : "pos"}">${fmtMoney(tx.amount, true)}</span></div>`).join("")}
         </section>
       </div>
     </div>`;
@@ -480,7 +474,7 @@ function renderInsights() {
       <h1>Insights</h1>
       <p>What ${esc(monthName(currentMonth))} actually says about this household's money — computed from the real transactions, not guesses.</p>
     </div>
-    <div class="grid grid-main">
+    <div class="grid grid-2">
       <section class="card">
         <h2>What stands out</h2>
         <div class="insight"><span class="mark">$</span><p><b>Biggest cost: ${esc(topCat ? categoryById(topCat[0]).name : "—")} at ${fmtMoney(topCat ? topCat[1] : 0)}.</b> ${topCat && topCat[0] === "groceries" ? "Groceries lead every month — meal planning is the single biggest lever this household has." : "It leads spending this month."}</p></div>
@@ -492,12 +486,13 @@ function renderInsights() {
       <div class="stack">
         <section class="card">
           <h2>This month vs last</h2>
+          <div class="kv-list two-col">
           ${CATEGORIES.map((c) => {
             const now = spent[c.id] || 0;
             const then = categorySpent(prevMonth)[c.id] || 0;
             const diff = then ? Math.round(((now - then) / then) * 100) : null;
             return `<div class="kv"><span class="k"><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.color};margin-right:6px"></span>${esc(c.name)}</span><span class="v money">${fmtMoney(now)} <span style="color:var(--muted);font-weight:400">${diff === null ? "—" : (diff >= 0 ? "+" : "") + diff + "%"}</span></span></div>`;
-          }).join("")}
+          }).join("")}</div>
         </section>
         <section class="card">
           <h2>Three moves for next month</h2>
