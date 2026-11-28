@@ -1,5 +1,12 @@
 // Hearth — household budget site entry (Node 22, standard library only).
 //
+// v3: the dashboard was rebuilt so its first screen ends cleanly in a
+// 1280x800 viewport (three-column chart row, then budgets and recent
+// spending), Bills and Insights got their own screenshots, the phone nav
+// shows all six links, and the design carries a hearth motif throughout:
+// a house-and-flame mark, an ember strip under the header, and a warm
+// firelight glow behind the page.
+//
 // The site is this directory's app/ folder: plain static files a browser opens
 // at app/index.html (ES modules, CSS, no build step), its content held in its
 // own files — nothing it runs, styles or shows loads over the network.
